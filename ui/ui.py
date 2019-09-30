@@ -3,14 +3,14 @@ import tkinter as tk
 
 class MainWindow:
     def __init__(self):
-        self.root = tk.Tk()
+        self.root = tk.Tk()  # желтый #F5CD7A, F7D794, blue 556EE6, 778BEB, pink F78FB3, FBA5C2,
         self.root.geometry("960x540+300+150")
         self.root.minsize(700, 300)
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         self.toolbar = tk.Frame(self.root, highlightthickness=1, highlightbackground='black', width=300, height=300)
         self.toolbar.grid(row=0, column=3, rowspan=4, sticky='ns', padx=(10, 0), pady=0)
-        self.field = tk.Canvas(self.root, width=1000, height=600, highlightthickness=1, highlightbackground='black', relief='ridge', scrollregion=(0, 0, 1170, 745))
+        self.field = tk.Canvas(self.root, width=1000, height=600, highlightthickness=1, highlightbackground='black', bg='#f7d794', relief='ridge', scrollregion=(0, 0, 1190, 745))
         self.field.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nswe', padx=(0, 10), pady=(0, 10))
         self.buttonbar = tk.Frame(self.root, highlightbackground='black', width=200, height=70, highlightthickness=1)
         self.buttonbar.grid(row=3, column=0, columnspan=2, rowspan=1, sticky='we', padx=(0, 10), pady=(10, 0))
@@ -18,15 +18,16 @@ class MainWindow:
         self.buttonbar.grid_columnconfigure(0, weight=30)
         self.buttonbar.grid_columnconfigure(1, weight=1)
         self.buttonbar.grid_columnconfigure(2, weight=1)
-        self.buttons = [tk.Button(self.buttonbar, text='Play', command=self.play, bg='#098B00', activebackground='#097002', activeforeground='white', width=10).grid(row=0, column=1, pady=(10, 3), sticky='we'),
-                        tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#8B0000', activebackground='#700202', activeforeground='white', width=10).grid(row=1, column=1, pady=(3, 10), sticky='we')]
+        self.buttons = [tk.Button(self.buttonbar, text='Play', command=self.play, bg='#8beb77', activebackground='#77eb8b', activeforeground='white', width=10).grid(row=0, column=1, pady=(10, 3), sticky='we'),
+                        tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#e66e55', activebackground='#e68c55', activeforeground='white', width=10).grid(row=1, column=1, pady=(3, 10), sticky='we')]
         self.state = True
         self.run = False
         self.sqr_number_x = 150
         self.sqr_number_y = 100
-        # for x in range(self.sqr_number_x):
-        #     for y in range(self.sqr_number_y):
-        #         sqr = self.field.create_rectangle(x * 10, y * 10, (x + 1) * 10, (y + 1) * 10, fill='blue')
+        for x in range(1, self.sqr_number_x + 1):  # horizontal
+            self.field.create_line(x * 1190 // self.sqr_number_x, 0, x * 1190 // self.sqr_number_x, 745, fill='black')
+        for y in range(1, self.sqr_number_y):  # vertical
+            self.field.create_line(0, y * 745 // self.sqr_number_y, 1200, y * 745 // self.sqr_number_y, fill='black')
         xbar = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
         ybar = tk.Scrollbar(self.root)
         ybar.grid(row=0, column=2, rowspan=3, sticky='ns')
