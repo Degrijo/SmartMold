@@ -1,5 +1,7 @@
 import tkinter as tk
 
+FIELD_WIDTCH =150
+FIELD_HEIGHT =100
 
 class MainWindow:
     def __init__(self):
