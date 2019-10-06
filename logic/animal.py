@@ -1,5 +1,6 @@
 import numpy as np
 
+
 directions = {'LEFT-UP': 0, 'UP': 1, 'RIGHT-UP': 2,
               'LEFT': 3, 'RIGHT': 4,
               'LEFT-BOTTOM': 5, 'BOTTOM': 6, 'RIGHT-BOTTOM': 7}  # совспадает с номерами клеток соседей текущей

@@ -3,12 +3,9 @@ class Cell:
 
     def __init__(self):
         self.plant_nutrition = 0  # питательность растений на клетке
-
         self.temperature = 20
-
         self.corpse_energy = 0  # питательность трупов на клетке
         self.corpse_age = 0  # возраст трупов на клетке
-
         self.nearest_cells = []
         """
         Ближайшие клетки
@@ -16,9 +13,7 @@ class Cell:
         3 4
         567 - расположение
         """
-
         self.animal = None
-
 
     def step(self):
         self.check_corpses()
@@ -36,6 +31,3 @@ class Cell:
             self.corpse_energy = 0
         elif self.corpse_energy == 0:
             self.corpse_age = 0
-
-
-
