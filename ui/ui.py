@@ -38,6 +38,7 @@ class MainWindow:
         self.root.attributes("-fullscreen", self.state)
         self.root.bind("<F11>", self.toggle_fullscreen)
         self.root.bind("<Escape>", self.end_fullscreen)
+        self.root.bind("<space>", self.change_run)
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state
@@ -49,9 +50,22 @@ class MainWindow:
 
     def play(self):
         self.run = True
+        # self.buttons[0].config(state=tk.DISABLED)
+        # self.buttons[1].config(state=tk.NORMAL)
 
     def pause(self):
         self.run = False
+        # self.buttons[1].config(state=tk.DISABLED)
+        # self.buttons[0].config(state=tk.NORMAL)
+
+    def change_run(self, event=None):
+        self.run = not self.run
+        # if self.run:
+        #     self.buttons[0].config(state=tk.DISABLED)
+        #     self.buttons[1].config(state=tk.NORMAL)
+        # else:
+        #     self.buttons[1].config(state=tk.DISABLED)
+        #     self.buttons[0].config(state=tk.NORMAL)
 
     def start(self):
         self.root.mainloop()
