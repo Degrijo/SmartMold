@@ -1,7 +1,5 @@
 import tkinter as tk
-
-FIELD_WIDTH = 150
-FIELD_HEIGHT = 100
+from logic.logic import stage_generation
 
 
 class MainWindow:
@@ -72,6 +70,18 @@ class MainWindow:
 
     def start(self):
         self.root.mainloop()
+        self.cells, self.animals = stage_generation()
+        self.paint()
+        self.field.mainloop()
+        # потоки в tkinter step()
+
+    def paint(self):
+        for i in range(len(self.cells)):
+            for j in range(len(self.cells[i])):
+                print(self.cells[i][j].color)
+                self.field.create_rectangle(i*self.sqr_number_x, j*self.sqr_number_y,
+                                            (i + 1)*self.sqr_number_x, (j + 1)*self.sqr_number_y,
+                                            fill=self.cells[i][j].color)
 
 
 if __name__ == '__main__':
