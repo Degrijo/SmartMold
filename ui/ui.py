@@ -1,4 +1,5 @@
 import tkinter as tk
+
 from logic.logic import stage_generation
 
 
@@ -40,6 +41,7 @@ class MainWindow:
         self.root.bind("<F11>", self.toggle_fullscreen)
         self.root.bind("<Escape>", self.end_fullscreen)
         self.root.bind("<space>", self.change_run)
+
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state

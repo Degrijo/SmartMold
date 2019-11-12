@@ -1,4 +1,4 @@
-from animal import Animal
+from logic.animal import Animal
 
 
 class WarmBlooded(Animal):
