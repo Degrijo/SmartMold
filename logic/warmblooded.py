@@ -7,7 +7,6 @@ class WarmBlooded(Animal):
         super().__init__(cell)
         self.temperature_sensibility = 0.1
         self.optimal_temperature = [5, 30]
-        pass
 
     def eat(self):
         if self.cell.plant_nutrition > 0:

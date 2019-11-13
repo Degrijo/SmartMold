@@ -14,25 +14,19 @@ class Animal:
         self.energy = 0
         self.energy_debuff = 0
         self.passive_energy_reduction = 0
-
         self.optimal_temperature = 0
         self.temperature_sensibility = 0
-
         self.kus = 0
         self.cell = cell
-
-        dirs = {dir: 0.1 for dir in directions.keys()}
-        other = {'REPRODUCTION': 0.1,
-                 'NUTRITION': 0.1,
-                 'REST': 0.1}
-        self.actions_probability = dict(list(dirs.items()) + list(other.items()))
+        self.actions_probability = {dir: 0.1 for dir in directions.keys()}
+        self.actions_probability.update({'REPRODUCTION': 0.1, 'NUTRITION': 0.1, 'REST': 0.1})
 
     def move(self, direction):
         cell_n = direction[direction]
         destination_cell = self.cell.nearest_cells[cell_n]
-        if destination_cell is None:
+        if not destination_cell:
             return -1
-        if destination_cell.animal is None:
+        if not destination_cell.animal:
             self.cell.animal = None
             self.cell = destination_cell
             destination_cell.animal = self

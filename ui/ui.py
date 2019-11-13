@@ -1,11 +1,15 @@
 import tkinter as tk
 
-from logic.logic import stage_generation
+from random import randint, random
+
+from logic.cell import Cell
+from logic.coldblooded import ColdBlooded
+from logic.warmblooded import WarmBlooded
 
 
-class MainWindow:
-    def __init__(self):
-        self.root = tk.Tk()  # желтый #F5CD7A, F7D794, blue 556EE6, 778BEB, pink F78FB3, FBA5C2,
+class FrontWindow:
+    def __init__(self, root):
+        self.root = root
         self.root.geometry("960x540+300+150")
         self.root.minsize(700, 300)
         self.root.grid_rowconfigure(0, weight=1)
@@ -42,7 +46,6 @@ class MainWindow:
         self.root.bind("<Escape>", self.end_fullscreen)
         self.root.bind("<space>", self.change_run)
 
-
     def toggle_fullscreen(self, event=None):
         self.state = not self.state
         self.root.attributes("-fullscreen", self.state)
@@ -70,22 +73,55 @@ class MainWindow:
         #     self.buttons[1].config(state=tk.DISABLED)
         #     self.buttons[0].config(state=tk.NORMAL)
 
-    def start(self):
-        self.root.mainloop()
-        self.cells, self.animals = stage_generation()
-        self.paint()
-        self.field.mainloop()
-        # потоки в tkinter step()
-
-    def paint(self):
-        for i in range(len(self.cells)):
-            for j in range(len(self.cells[i])):
-                print(self.cells[i][j].color)
+    def paint(self, cells):
+        for i in range(len(cells)):
+            for j in range(len(cells[i])):
                 self.field.create_rectangle(i*self.sqr_number_x, j*self.sqr_number_y,
                                             (i + 1)*self.sqr_number_x, (j + 1)*self.sqr_number_y,
-                                            fill=self.cells[i][j].color)
+                                            fill=cells[i][j].color)
+        return self.root.after(2000, cells)
+
+
+class BackWindow:
+    def __init__(self):
+        self.cells, self.animals = self.stage_generation()
+        self.init_plants()
+        self.init_cells_temperature()
+
+    def stage_generation(self):
+        cells = [[Cell() for j in range(FIELD_HEIGHT)] for i in range(FIELD_WIDTH)]
+        animals = []
+        if START_ANIMAL_NUMBER <= FIELD_HEIGHT * FIELD_WIDTH:
+            for i in range(START_ANIMAL_NUMBER):
+                if sum(START_ANIMAL_RATIO) == 100:
+                    type_index = 'WARM' if randint(1, START_ANIMAL_RATIO[0]) else 'COLD'
+                    cell = None
+                    while not cell:
+                        random_cell = cells[randint(0, FIELD_WIDTH - 1)][randint(0, FIELD_HEIGHT - 1)]
+                        cell = random_cell if not random_cell.animal else None
+                    animals += [WarmBlooded(cell) if type_index == 'WARM' else ColdBlooded(cell)]
+        return cells, animals
+
+    def init_cells_temperature(self):
+        width = len(self.cells)
+        height = len(self.cells[1])
+        k = (MAX_TEMPERATURE - MIN_TEMPERATURE) / (height / 2)
+        for row in range(width):
+            for col in range(height):
+                if row < height / 2:
+                    self.cells[row][col].temperature = MIN_TEMPERATURE + k * row  # линейное распределение температуры
+                else:
+                    self.cells[row][col].temperature = MAX_TEMPERATURE - k * row / 2  # линейное распределение температуры
+
+    def init_plants(self):
+        for row in range(len(self.cells)):
+            for col in range(len(self.cells)):
+                self.cells[row][col].plant_nutrition = random.uniform(0, MAX_PLANTS_NUTRITION)
 
 
 if __name__ == '__main__':
-    w = MainWindow()
-    w.start()
+    root = tk.Tk()
+    fw = FrontWindow(root)
+    bw = BackWindow()
+    root.after(2000, fw.paint(bw.cells))
+    root.mainloop()
