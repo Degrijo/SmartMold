@@ -2,18 +2,14 @@ import tkinter as tk
 
 from random import randint, random
 
-from logic.cell import Cell
+# from logic.cell import Cell
 from logic.coldblooded import ColdBlooded
 from logic.warmblooded import WarmBlooded
 from logic.cells_const import MAX_PLANTS_NUTRITION, FIELD_HEIGHT, FIELD_WIDTH, START_ANIMAL_NUMBER, START_ANIMAL_RATIO,\
     MAX_TEMPERATURE, MIN_TEMPERATURE
+from logic.mods import MODE_ANIMALS, MODE_ENERGY, MODE_TEMPERATURE, MODE_PLANTS, MODE_CORPSE
 
 
-MODE_ANIMALS = 'mode_animals'
-MODE_ENERGY = 'mode_energy'
-MODE_TEMPERATURE = 'mode_temperature'
-MODE_PLANTS = 'mode_plants'
-MODE_CORPSE = 'mode_corpse'
 current_view_mode = MODE_ANIMALS
 
 
@@ -154,6 +150,6 @@ class BackWindow:
 if __name__ == '__main__':
     root = tk.Tk()
     fw = FrontWindow(root)
-    bw = BackWindow()
-    root.after(2000, fw.paint(bw.cells))
+    # bw = BackWindow()
+    # root.after(2000, fw.paint(bw.cells))
     root.mainloop()
