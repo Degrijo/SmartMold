@@ -1,9 +1,16 @@
+from logic.cells_const import BASE_CELL_TEMPERATURE, CORPSE_DECAY_TIME
+from logic.warmblooded import WarmBlooded
+from ui.color_utils import empty_cell_color, warm_blooded_cell_color, cold_blooded_cell_color, get_energy_color, \
+    rgb_to_hex, get_animal_color, get_plant_color, get_corpse_color
+from ui.ui import MODE_ANIMALS, MODE_ENERGY, MODE_PLANTS, MODE_CORPSE
+
+
 class Cell:
-    corpse_decay_time = 5  # время разложения трупа
+    corpse_decay_time = CORPSE_DECAY_TIME  # время разложения трупа
 
     def __init__(self):
         self.plant_nutrition = 0  # питательность растений на клетке
-        self.temperature = 20
+        self.temperature = BASE_CELL_TEMPERATURE
         self.corpse_energy = 0  # питательность трупов на клетке
         self.corpse_age = 0  # возраст трупов на клетке
         self.nearest_cells = []  # +x, -x, +y, -y
@@ -35,8 +42,22 @@ class Cell:
     @property
     def color(self):
         if self.plant_nutrition and self.animal:
-            return '#a44b16'
+            return 'White'
         elif self.plant_nutrition:
-            return '#77eb8b'
+            return "White"
         elif self.animal:
-            return '#e6556e'
+            return 'White'
+
+
+
+def color_by_view_mode(self, state):
+    col = empty_cell_color
+    if state == MODE_ANIMALS:
+        return get_animal_color(self.animal)
+    elif state == MODE_ENERGY:
+        energy = self.animal.energy | 0
+        return get_energy_color(energy)
+    elif state == MODE_PLANTS:
+        return get_plant_color(self.plant_nutrition)
+    elif state == MODE_CORPSE:
+        return get_corpse_color(self.corpse_energy)

@@ -1,5 +1,0 @@
-FIELD_WIDTH = 150
-FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 200
-START_ANIMAL_RATIO = [50, 50]  # пропорция хладнокровных/теплокровных в %
-MAX_PLANTS_NUTRITION = 20

@@ -1,4 +1,5 @@
 from logic.animal import Animal
+from logic.animals_const import WARM_BLOODED_TEMPERATURE_SENSIBILITY, WARM_BLOODED_OPTIMAL_TEMPERATURE
 
 
 class WarmBlooded(Animal):
@@ -7,6 +8,8 @@ class WarmBlooded(Animal):
         super().__init__(cell)
         self.temperature_sensibility = 0.1
         self.optimal_temperature = [5, 30]
+        self.temperature_sensibility = WARM_BLOODED_TEMPERATURE_SENSIBILITY
+        self.optimal_temperature = WARM_BLOODED_OPTIMAL_TEMPERATURE
 
     def eat(self):
         if self.cell.plant_nutrition > 0:
