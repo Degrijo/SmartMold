@@ -5,7 +5,8 @@ from random import randint, random
 from logic.cell import Cell
 from logic.coldblooded import ColdBlooded
 from logic.warmblooded import WarmBlooded
-from logic.cells_const import MAX_PLANTS_NUTRITION, FIELD_HEIGHT, FIELD_WIDTH, START_ANIMAL_NUMBER, START_ANIMAL_RATIO
+from logic.cells_const import MAX_PLANTS_NUTRITION, FIELD_HEIGHT, FIELD_WIDTH, START_ANIMAL_NUMBER, START_ANIMAL_RATIO,\
+    MAX_TEMPERATURE, MIN_TEMPERATURE
 
 
 MODE_ANIMALS = 'mode_animals'
@@ -101,7 +102,7 @@ class FrontWindow:
         #     self.buttons[1].config(state=tk.DISABLED)
         #     self.buttons[0].config(state=tk.NORMAL)
 
-    def paint(self):
+    def paint(self, cells):
         for i in range(len(self.cells)):
             for j in range(len(self.cells[i])):
                 self.field.create_rectangle(i * self.sqr_number_x, j * self.sqr_number_y,
