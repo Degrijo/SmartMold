@@ -1,5 +1,6 @@
 import numpy as np
 
+from logic.animals_const import MAX_ANIMAL_ENERGY, MIN_ANIMAL_ENERGY
 
 directions = {'LEFT-UP': 0, 'UP': 1, 'RIGHT-UP': 2,
               'LEFT': 3, 'RIGHT': 4,
@@ -9,8 +10,8 @@ directions = {'LEFT-UP': 0, 'UP': 1, 'RIGHT-UP': 2,
 class Animal:
 
     def __init__(self, cell):
-        self.max_energy = 100
-        self.min_energy = 20  # Энергия ниже которой животное помирает и становится трупом на клетке
+        self.max_energy = MAX_ANIMAL_ENERGY
+        self.min_energy = MIN_ANIMAL_ENERGY  # Энергия ниже которой животное помирает и становится трупом на клетке
         self.energy = 0
         self.energy_debuff = 0
         self.passive_energy_reduction = 0
@@ -71,3 +72,4 @@ class Animal:
                 self.optimal_temperature[1] - self.optimal_temperature[0]) / 2 * self.temperature_sensibility)
         # можно заменить линейную функцию на квадратичную или ещё какую-нибудь
         self.energy -= energy_debuff
+

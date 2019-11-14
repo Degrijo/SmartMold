@@ -1,15 +1,11 @@
 from random import randint, random
 
-from logic.cell import Cell
-from logic.coldblooded import ColdBlooded
-from logic.warmblooded import WarmBlooded
 import numpy as np
 
-FIELD_WIDTH = 150
-FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 200
-START_ANIMAL_RATIO = [50, 50]  # пропорция хладнокровных/теплокровных в %
-MAX_PLANTS_NUTRITION = 20
+from logic.cell import Cell
+from logic.cells_const import MAX_PLANTS_NUTRITION, FIELD_HEIGHT, FIELD_WIDTH, START_ANIMAL_NUMBER, START_ANIMAL_RATIO
+from logic.coldblooded import ColdBlooded
+from logic.warmblooded import WarmBlooded
 
 
 def stage_generation():
@@ -42,10 +38,14 @@ def init_cells_temperature(cells):
             else:
                 cells[row][col].temperature = MAX_TEMPERATURE - k * row / 2 #линейное распределение температуры
 
+
 def init_plants(cells):
     for row in range(cells.shape[0]):
         for col in range(cells.shape[1]):
             cells[row][col].plant_nutrition = random.uniform(0, MAX_PLANTS_NUTRITION)
+
+
+
 
 
 

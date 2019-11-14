@@ -1,6 +1,12 @@
 import tkinter as tk
 
-from logic.logic import stage_generation
+MODE_ANIMALS = 'mode_animals'
+MODE_ENERGY = 'mode_energy'
+MODE_TEMPERATURE = 'mode_temperature'
+MODE_PLANTS = 'mode_plants'
+MODE_CORPSE = 'mode_corpse'
+
+current_view_mode = MODE_ANIMALS
 
 
 class MainWindow:
@@ -11,8 +17,23 @@ class MainWindow:
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         self.toolbar = tk.Frame(self.root, highlightthickness=1, highlightbackground='black', width=300, height=300)
-        self.toolbar.grid(row=0, column=3, rowspan=4, sticky='ns', padx=(10, 0), pady=0)
-        self.field = tk.Canvas(self.root, width=1000, height=600, highlightthickness=1, highlightbackground='black', bg='#f7d794', relief='ridge', scrollregion=(0, 0, 1190, 745))
+        self.toolbar.grid(row=0, column=3,  sticky='ns', padx=(10, 0), pady=0)
+        self.view_button = [
+            tk.Button(self.toolbar, text='Animals view', command=self.switch_mode(MODE_ANIMALS), bg='#8B1A1A',
+                      activebackground='#e68c55',
+                      activeforeground='white', width=40).grid(row=1, column=1, pady=(3, 10), sticky='we'),
+            tk.Button(self.toolbar, text='Energy view', command=self.switch_mode(MODE_ENERGY), bg='#E0FFFF',
+                      activebackground='#e68c55',
+                      activeforeground='white', width=40).grid(row=2, column=1, pady=(3, 10), sticky='we'),
+            tk.Button(self.toolbar, text='Temperature view', command=self.switch_mode(MODE_TEMPERATURE), bg='#F0E68C',
+                      activebackground='#e68c55',
+                      activeforeground='white', width=40).grid(row=3, column=1, pady=(3, 10), sticky='we'),
+            tk.Button(self.toolbar, text='Corpse view', command=self.switch_mode(MODE_CORPSE), bg='#D3D3D3',
+                      activebackground='#e68c55',
+                      activeforeground='white', width=40).grid(row=4, column=1, pady=(3, 10), sticky='we')
+        ]
+        self.field = tk.Canvas(self.root, width=1000, height=600, highlightthickness=1, highlightbackground='black',
+                               bg='#f7d794', relief='ridge', scrollregion=(0, 0, 1190, 745))
         self.field.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nswe', padx=(0, 10), pady=(0, 10))
         self.buttonbar = tk.Frame(self.root, highlightbackground='black', width=200, height=70, highlightthickness=1)
         self.buttonbar.grid(row=3, column=0, columnspan=2, rowspan=1, sticky='we', padx=(0, 10), pady=(10, 0))
@@ -20,8 +41,12 @@ class MainWindow:
         self.buttonbar.grid_columnconfigure(0, weight=30)
         self.buttonbar.grid_columnconfigure(1, weight=1)
         self.buttonbar.grid_columnconfigure(2, weight=1)
-        self.buttons = [tk.Button(self.buttonbar, text='Play', command=self.play, bg='#8beb77', activebackground='#77eb8b', activeforeground='white', width=10).grid(row=0, column=1, pady=(10, 3), sticky='we'),
-                        tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#e66e55', activebackground='#e68c55', activeforeground='white', width=10).grid(row=1, column=1, pady=(3, 10), sticky='we')]
+        self.buttons = [
+            tk.Button(self.buttonbar, text='Play', command=self.play, bg='#8beb77', activebackground='#77eb8b',
+                      activeforeground='white', width=10).grid(row=0, column=1, pady=(10, 3), sticky='we'),
+            tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#e66e55', activebackground='#e68c55',
+                      activeforeground='white', width=10).grid(row=1, column=1, pady=(3, 10), sticky='we')
+            ]
         self.state = True
         self.run = False
         self.sqr_number_x = 150
@@ -41,7 +66,6 @@ class MainWindow:
         self.root.bind("<F11>", self.toggle_fullscreen)
         self.root.bind("<Escape>", self.end_fullscreen)
         self.root.bind("<space>", self.change_run)
-
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state
@@ -72,6 +96,7 @@ class MainWindow:
 
     def start(self):
         self.root.mainloop()
+        from logic.logic import stage_generation
         self.cells, self.animals = stage_generation()
         self.paint()
         self.field.mainloop()
@@ -81,9 +106,12 @@ class MainWindow:
         for i in range(len(self.cells)):
             for j in range(len(self.cells[i])):
                 print(self.cells[i][j].color)
-                self.field.create_rectangle(i*self.sqr_number_x, j*self.sqr_number_y,
-                                            (i + 1)*self.sqr_number_x, (j + 1)*self.sqr_number_y,
-                                            fill=self.cells[i][j].color)
+                self.field.create_rectangle(i * self.sqr_number_x, j * self.sqr_number_y,
+                                            (i + 1) * self.sqr_number_x, (j + 1) * self.sqr_number_y,
+                                            fill=self.cells[i][j].color_by_view_mode(current_view_mode))
+
+    def switch_mode(self, MODE):
+        current_view_mode = MODE
 
 
 if __name__ == '__main__':
