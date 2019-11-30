@@ -38,7 +38,7 @@ WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 # параметры поля
 FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 200
+START_ANIMAL_NUMBER = 3000
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
 MAX_TEMPERATURE = -30
 MIN_TEMPERATURE = 40
@@ -128,15 +128,17 @@ def fitness(animal):
 def crossover(animal1, animal2, child):
     if random.random() < crossover_probability:
         # определяем точку разрыва и всё левую часть забираем от первого родителя, а правую от второго
-        break_point = random.randint(0, len(animal1.action_probability))
-        child_genom = animal1.action_probability[:break_point] + animal2.action_probability[break_point:]
-        child.action_probabylity = child_genom
+        break_point = random.randint(0, len(animal1.actions_probability))
+        child_genom = animal1.actions_probability[:break_point] + animal2.actions_probability[break_point:]
+        child.actions_probabylity = child_genom
     return child
 
 
 def mutation(animal):
     if random.random() < mutation_probability:
-        key = np.random.choice(different_mutation.keys(), p=different_mutation.values())
+        keys = list(different_mutation.keys())
+        values = list(different_mutation.values())
+        key = np.random.choice(keys, p=values)
         if key == "simple":
             animal.actions_probability = simple_mutation(animal.actions_probability)
         elif key == "inversion":
@@ -170,6 +172,7 @@ def translocation_mutation(genom):
 
     translocation_part = genom[translocation_part_start:translocation_part_len]
     new_genom = genom[:translocation_part_start] + genom[translocation_part_start + translocation_part_len:]
+    #check indexes
     for i in range(translocation_part_len):
         new_genom.insert(translocation_part_new_start + i, translocation_part[i])
     return new_genom
