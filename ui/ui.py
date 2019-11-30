@@ -38,7 +38,7 @@ WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 # параметры поля
 FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 3000
+START_ANIMAL_NUMBER = 5000
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
 MAX_TEMPERATURE = -30
 MIN_TEMPERATURE = 40
@@ -160,7 +160,7 @@ def inversion_mutation(genom):
     inversion_part_start = random.randint(0, len(genom) - inversion_part_len)
     inversed_part = list(reversed(genom[inversion_part_start:inversion_part_start + inversion_part_len]))
     new_genom = genom[:inversion_part_start] + genom[inversion_part_start + inversion_part_len:]
-    for i in range(len(genom)):
+    for i in range(len(inversed_part)):
         new_genom.insert(inversion_part_start + i, inversed_part[i])
     return new_genom
 
@@ -170,9 +170,8 @@ def translocation_mutation(genom):
     translocation_part_start = random.randint(0, len(genom) - translocation_part_len)
     translocation_part_new_start = random.randint(0, len(genom) - translocation_part_len)
 
-    translocation_part = genom[translocation_part_start:translocation_part_len]
+    translocation_part = genom[translocation_part_start:translocation_part_start + translocation_part_len]
     new_genom = genom[:translocation_part_start] + genom[translocation_part_start + translocation_part_len:]
-    #check indexes
     for i in range(translocation_part_len):
         new_genom.insert(translocation_part_new_start + i, translocation_part[i])
     return new_genom
@@ -231,6 +230,8 @@ class Animal:
         pass
 
     def try_reproduce(self):
+        if self.energy == 0:
+            return
         partner = self.find_partner()
         if partner:
             child_cell = self.find_free_cell()
@@ -252,9 +253,8 @@ class Animal:
         return None
 
     def find_free_cell(self):
-        cells = self.cell.nearest_cells
-        for cell in cells:
-            if not cell.animal:
+        for cell in self.cell.nearest_cells:
+            if cell is not None and not cell.animal:
                 return cell
 
     def step(self):
@@ -493,10 +493,13 @@ class FrontWindow:
 
 
 def do_reproduction():
+    global warm, cold
     for warm_a in warm:
         warm_a.try_reproduce()
+    warm = list(filter(lambda animal: animal.energy != 0, warm))
     for cold_a in cold:
         cold_a.try_reproduce()
+    cold = list(filter(lambda animal: animal.energy != 0, cold))
 
 
 def stage_generation():
