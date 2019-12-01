@@ -24,10 +24,10 @@ current_step = 0
 # параметры животных стартовые
 MIN_ANIMAL_ENERGY = 20
 MAX_ANIMAL_ENERGY = 100
-COLD_BLOODED_OPTIMAL_TEMPERATURE = [15, 25]
-COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.2
-WARM_BLOODED_OPTIMAL_TEMPERATURE = [5, 30]
-WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
+COLD_BLOODED_OPTIMAL_TEMPERATURE = [15, 20]
+COLD_BLOODED_TEMPERATURE_SENSIBILITY = 1
+WARM_BLOODED_OPTIMAL_TEMPERATURE = [10, 30]
+WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.5
 ###############################################################################
 
 
@@ -35,9 +35,9 @@ WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 # параметры поля
 FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 300
+START_ANIMAL_NUMBER = 400
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
-MIN_TEMPERATURE = -20
+MIN_TEMPERATURE = -30
 MAX_TEMPERATURE = 40
 BASE_CELL_TEMPERATURE = 20
 CORPSE_DECAY_TIME = 5
@@ -66,7 +66,8 @@ def rgb_to_hex(rgb):
 def get_energy_color(energy):
     if not energy:
         return empty_cell_color
-    n = round((energy - MIN_ANIMAL_ENERGY)*(gradient_color_count - 1) / (MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY))
+    col_n = (MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY) // (gradient_color_count - 1)
+    n = round((energy - MIN_ANIMAL_ENERGY)/(col_n + 1))
     return energy_color_scale[n]
 
 
@@ -82,7 +83,8 @@ def get_animal_color(animal):
 def get_plant_color(plant_nutrition):
     if not plant_nutrition:
         return empty_cell_color
-    n = (plant_nutrition - 0)*(gradient_color_count - 1) // (MAX_PLANTS_NUTRITION - 0)
+    col_n = (MAX_PLANTS_NUTRITION - 0) // (gradient_color_count - 1)
+    n = round((plant_nutrition - 0) /(col_n + 1))
     return plants_color_scale[n]
 
 
@@ -90,7 +92,8 @@ def get_corpse_color(corpse_energy):
     if not corpse_energy:
         return empty_cell_color
     col_n = (MAX_CORPSE_ENERGY - 0) // (gradient_color_count - 1)
-    return corpse_color_scale[col_n]
+    n = round((corpse_energy - 0 )/ (col_n + 1))
+    return corpse_color_scale[n]
 
 
 def get_temperature_color(temperature):
@@ -193,6 +196,8 @@ class Animal:
         self.actions_probability = [random.randint(1, 10) for i in range(len(actions))]
 
     def check_energy(self):
+        if self.energy > self.max_energy:
+            self.energy = self.max_energy
         if self.energy <= self.min_energy:  # смэрть
             self.cell.animal = None
             self.cell.add_corpse_energy(self.energy)
@@ -202,9 +207,9 @@ class Animal:
 
     def move(self, direction):
         destination_cell = self.cell.nearest_cells[direction]
-        if not destination_cell:
-            return -1
-        if not destination_cell.animal:
+        if destination_cell is None:
+            return
+        elif not destination_cell.animal:
             self.cell.animal = None
             self.cell = destination_cell
             destination_cell.animal = self
@@ -227,9 +232,7 @@ class Animal:
         if (action in directions):
             self.move(directions[action])
         elif action == 'NUTRITION':
-            pass
-        elif action == 'REST':
-            pass
+            self.eat()
         self.age += 1
         self.temperature_effect()
         self.check_energy()
@@ -251,7 +254,7 @@ class WarmBlooded(Animal):
         self.energy = MAX_ANIMAL_ENERGY
         self.optimal_temperature = [5, 30]
         self.energy_debuff = 5
-        self.passive_energy_reduction = 5
+        self.passive_energy_reduction = 7
         self.temperature_sensibility = WARM_BLOODED_TEMPERATURE_SENSIBILITY
         self.kus = 20
         self.optimal_temperature = WARM_BLOODED_OPTIMAL_TEMPERATURE
@@ -266,9 +269,9 @@ class WarmBlooded(Animal):
                 self.cell.plant_nutrition = 0
 
     def find_partner(self):
-        cells = self.cell.nearest_cells
-        for cell in cells:
-            if cell:
+        nearest_cells = self.cell.nearest_cells
+        for cell in nearest_cells:
+            if cell is not None:
                 if isinstance(cell.animal, WarmBlooded):
                     return cell.animal
 
@@ -300,7 +303,7 @@ class ColdBlooded(Animal):
         self.energy = MAX_ANIMAL_ENERGY
         self.optimal_temperature = [15, 25]
         self.energy_debuff = 2
-        self.passive_energy_reduction = 1
+        self.passive_energy_reduction = 3
         self.kus = 30
         self.temperature_sensibility = COLD_BLOODED_TEMPERATURE_SENSIBILITY
         self.optimal_temperature = COLD_BLOODED_OPTIMAL_TEMPERATURE
@@ -317,7 +320,7 @@ class ColdBlooded(Animal):
     def find_partner(self):
         cells = self.cell.nearest_cells
         for cell in cells:
-            if cell:
+            if cell is not None:
                 if isinstance(cell.animal, ColdBlooded):
                     return cell.animal
 
