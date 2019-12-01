@@ -48,22 +48,22 @@ MAX_PLANTS_NUTRITION = 40
 
 ################################################################################
 # методы для работы с цветом
-warm_blooded_cell_color = (139, 26, 26)  # 8B1A1A
-cold_blooded_cell_color = (16, 78, 139)  # 104E8B
+warm_blooded_cell_color = "#8B1A1A"
+cold_blooded_cell_color = "#104E8B"
 
 empty_cell_color = "White"
 
-min_energy_cell_color = (224, 255, 255)  # E0FFFF
-max_energy_cell_color = (25, 25, 112)  # 191970
+min_energy_cell_color =   "#E0FFFF"
+max_energy_cell_color = "#191970"
 
-min_plants_cell_color = (154, 255, 154)  # 9AFF9A
-max_plants_cell_color = (0, 128, 0)  # 008000
+min_plants_cell_color = "#9AFF9A"
+max_plants_cell_color = "#008000"
 
-min_temperature_cell_color = (240, 230, 140)  # F0E68C
-max_temperature_cell_color = (255, 69, 0)  # FF4500
+min_temperature_cell_color = "#F0E68C"
+max_temperature_cell_color = "#FF4500"
 
-min_corpse_cell_color = (211, 211, 211)  # D3D3D3
-max_corpse_cell_color = (54, 54, 54)  # 363636
+min_corpse_cell_color = "#D3D3D3"
+max_corpse_cell_color = "#363636"
 
 gradient_color_count = 10
 
@@ -78,16 +78,17 @@ def get_energy_color(energy):
     min_color = Color(min_energy_cell_color)
     max_color = Color(max_energy_cell_color)
     col_n = round((MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY) / gradient_color_count)
-    return list(min_color.range_to(max_color, gradient_color_count))[col_n]
+    n = round((energy - MIN_ANIMAL_ENERGY) / col_n)
+    return list(min_color.range_to(max_color, gradient_color_count))[n]
 
 
 def get_animal_color(animal):
     if not animal:
         return empty_cell_color
     if type(animal) == WarmBlooded:
-        return rgb_to_hex(warm_blooded_cell_color)
+        return warm_blooded_cell_color
     else:
-        return rgb_to_hex(cold_blooded_cell_color)
+        return cold_blooded_cell_color
 
 
 def get_plant_color(plant_nutrition):
@@ -96,7 +97,8 @@ def get_plant_color(plant_nutrition):
     min_color = Color(min_plants_cell_color)
     max_color = Color(max_plants_cell_color)
     col_n = round((MAX_PLANTS_NUTRITION - 0) / gradient_color_count)
-    return list(min_color.range_to(max_color, gradient_color_count))[col_n]
+    n = round((plant_nutrition - 0) / col_n)
+    return list(min_color.range_to(max_color, gradient_color_count))[n]
 
 
 def get_corpse_color(corpse_energy):
@@ -105,8 +107,17 @@ def get_corpse_color(corpse_energy):
     min_color = Color(min_corpse_cell_color)
     max_color = Color(max_corpse_cell_color)
     col_n = round((MAX_CORPSE_ENERGY - 0) / gradient_color_count)
+    n = round((corpse_energy -  0) / col_n)
     return list(min_color.range_to(max_color, gradient_color_count))[col_n]
 
+
+def get_temperature_color(temperature):
+    min_color = Color(min_temperature_cell_color)
+    max_color = Color(max_temperature_cell_color)
+    col_n = round((MAX_TEMPERATURE - MIN_TEMPERATURE) / gradient_color_count)
+    n = round((temperature - MIN_TEMPERATURE) / col_n)
+    result_color = list(min_color.range_to(max_color, gradient_color_count))[n]
+    return  result_color
 
 ###################################################################################
 
@@ -410,6 +421,8 @@ class Cell:
             return get_energy_color(energy)
         elif state == MODE_PLANTS:
             return get_plant_color(self.plant_nutrition)
+        elif state == MODE_TEMPERATURE:
+            return get_temperature_color(self.temperature)
         elif state == MODE_CORPSE:
             return get_corpse_color(self.corpse_energy)
 
