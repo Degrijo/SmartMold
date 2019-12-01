@@ -24,10 +24,10 @@ current_step = 0
 # параметры животных стартовые
 MIN_ANIMAL_ENERGY = 20
 MAX_ANIMAL_ENERGY = 100
-COLD_BLOODED_OPTIMAL_TEMPERATURE = [10, 20]
-COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
+COLD_BLOODED_OPTIMAL_TEMPERATURE = [15, 25]
+COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.2
 WARM_BLOODED_OPTIMAL_TEMPERATURE = [5, 30]
-WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.05
+WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 ###############################################################################
 
 
@@ -35,9 +35,9 @@ WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.05
 # параметры поля
 FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 5000
+START_ANIMAL_NUMBER = 300
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
-MIN_TEMPERATURE = -10
+MIN_TEMPERATURE = -20
 MAX_TEMPERATURE = 40
 BASE_CELL_TEMPERATURE = 20
 CORPSE_DECAY_TIME = 5
@@ -276,8 +276,11 @@ class Animal:
 
     def temperature_effect(self):
         current_temperature = self.cell.temperature
-        energy_debuff = abs(current_temperature - (
-                self.optimal_temperature[1] - self.optimal_temperature[0]) / 2 * self.temperature_sensibility)
+        energy_debuff = 0
+        if current_temperature > self.optimal_temperature[1]:
+            energy_debuff = (current_temperature - self.optimal_temperature[1]) * self.temperature_sensibility
+        elif current_temperature < self.optimal_temperature[0]:
+             energy_debuff = (current_temperature  - self.optimal_temperature[0]) * self.temperature_sensibility
         # можно заменить линейную функцию на квадратичную или ещё какую-нибудь
         self.energy -= energy_debuff
 
@@ -287,9 +290,11 @@ class WarmBlooded(Animal):
     def __init__(self, cell):
         super().__init__(cell)
         self.energy = MAX_ANIMAL_ENERGY
-        self.optimal_temperature = [0, 35]
+        self.optimal_temperature = [5, 30]
         self.energy_debuff = 5
+        self.passive_energy_reduction = 5
         self.temperature_sensibility = WARM_BLOODED_TEMPERATURE_SENSIBILITY
+        self.kus = 20
         self.optimal_temperature = WARM_BLOODED_OPTIMAL_TEMPERATURE
 
     def eat(self):
@@ -337,6 +342,8 @@ class ColdBlooded(Animal):
         self.energy = MAX_ANIMAL_ENERGY
         self.optimal_temperature = [15, 25]
         self.energy_debuff = 2
+        self.passive_energy_reduction = 1
+        self.kus = 30
         self.temperature_sensibility = COLD_BLOODED_TEMPERATURE_SENSIBILITY
         self.optimal_temperature = COLD_BLOODED_OPTIMAL_TEMPERATURE
 
@@ -712,6 +719,9 @@ def do_step():
     for cold_animal in cold:
         cold_animal.step()
     cold = list(filter(lambda animal: animal.energy != 0, cold))
+    for i in range(len(cells)):
+        for j in range(len(cells[0])):
+            cells[i][j].check_corpses()
 
 
 def start_game(window):
