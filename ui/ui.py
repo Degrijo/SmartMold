@@ -38,7 +38,7 @@ FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
 START_ANIMAL_NUMBER = 5000
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
-MIN_TEMPERATURE = -30
+MIN_TEMPERATURE = -10
 MAX_TEMPERATURE = 40
 BASE_CELL_TEMPERATURE = 20
 CORPSE_DECAY_TIME = 5
@@ -294,8 +294,9 @@ class WarmBlooded(Animal):
     def find_partner(self):
         cells = self.cell.nearest_cells
         for cell in cells:
-            if isinstance(cell.animal, WarmBlooded):
-                return cell.animal
+            if cell:
+                if isinstance(cell.animal, WarmBlooded):
+                    return cell.animal
 
     def try_reproduce(self):
         if self.energy == 0:
@@ -676,10 +677,10 @@ def init_cells_temperature():
     k = (MAX_TEMPERATURE - MIN_TEMPERATURE) / (height / 2)
     for row in range(height):
         for col in range(width):
-            if row < height / 2:
+            if row < (height / 2):
                 cells[row][col].temperature = MIN_TEMPERATURE + k * row  # линейное распределение температуры
             else:
-                cells[row][col].temperature = MAX_TEMPERATURE - k * row / 2  # линейное распределение температуры
+                cells[row][col].temperature = MAX_TEMPERATURE - k * row // 2  # линейное распределение температуры
 
 
 def init_plants():
