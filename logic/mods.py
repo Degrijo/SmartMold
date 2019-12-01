@@ -1,5 +1,0 @@
-MODE_ANIMALS = 'mode_animals'
-MODE_ENERGY = 'mode_energy'
-MODE_TEMPERATURE = 'mode_temperature'
-MODE_PLANTS = 'mode_plants'
-MODE_CORPSE = 'mode_corpse'
