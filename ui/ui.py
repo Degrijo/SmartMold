@@ -26,8 +26,8 @@ current_step = 0
 # параметры животных стартовые
 MIN_ANIMAL_ENERGY = 20
 MAX_ANIMAL_ENERGY = 100
-COLD_BLOODED_OPTIMAL_TEMPERATURE = [15, 20]
-COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.5
+COLD_BLOODED_OPTIMAL_TEMPERATURE = [10, 20]
+COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.3
 WARM_BLOODED_OPTIMAL_TEMPERATURE = [5, 30]
 WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 ###############################################################################
@@ -278,6 +278,7 @@ class WarmBlooded(Animal):
         super().__init__(cell)
         self.energy = MAX_ANIMAL_ENERGY
         self.optimal_temperature = [5, 30]
+        self.energy_debuff = 5
         self.temperature_sensibility = WARM_BLOODED_TEMPERATURE_SENSIBILITY
         self.optimal_temperature = WARM_BLOODED_OPTIMAL_TEMPERATURE
 
@@ -324,6 +325,7 @@ class ColdBlooded(Animal):
         super().__init__(cell)
         self.energy = MAX_ANIMAL_ENERGY
         self.optimal_temperature = [15, 25]
+        self.energy_debuff = 2
         self.temperature_sensibility = COLD_BLOODED_TEMPERATURE_SENSIBILITY
         self.optimal_temperature = COLD_BLOODED_OPTIMAL_TEMPERATURE
 
