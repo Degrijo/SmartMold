@@ -4,6 +4,8 @@ from time import sleep
 import numpy as np
 import random
 
+from threading import Thread
+
 from colour import Color
 
 MODE_ANIMALS = 'mode_animals'
@@ -398,27 +400,16 @@ class Cell:
         elif self.corpse_energy == 0:
             self.corpse_age = 0
 
-    @property
-    def color(self):
-        if self.plant_nutrition and self.animal:
-            return 'White'
-        elif self.plant_nutrition:
-            return "White"
-        elif self.animal:
-            return 'White'
-
-
-def color_by_view_mode(self, state):
-    col = empty_cell_color
-    if state == MODE_ANIMALS:
-        return get_animal_color(self.animal)
-    elif state == MODE_ENERGY:
-        energy = self.animal.energy | 0
-        return get_energy_color(energy)
-    elif state == MODE_PLANTS:
-        return get_plant_color(self.plant_nutrition)
-    elif state == MODE_CORPSE:
-        return get_corpse_color(self.corpse_energy)
+    def color_by_view_mode(self, state):
+        if state == MODE_ANIMALS:
+            return get_animal_color(self.animal)
+        elif state == MODE_ENERGY:
+            energy = self.animal.energy | 0
+            return get_energy_color(energy)
+        elif state == MODE_PLANTS:
+            return get_plant_color(self.plant_nutrition)
+        elif state == MODE_CORPSE:
+            return get_corpse_color(self.corpse_energy)
 
 
 class FrontWindow:
@@ -431,20 +422,20 @@ class FrontWindow:
         self.toolbar = tk.Frame(self.root, highlightthickness=1, highlightbackground='black', width=300, height=300)
         self.toolbar.grid(row=0, column=3, sticky='ns', padx=(10, 0), pady=0)
         self.view_button = [
-            tk.Button(self.toolbar, text='Animals view', command=self.switch_mode(MODE_ANIMALS), bg='#8B1A1A',
+            tk.Button(self.toolbar, text='Animals view', command=self.switch_mode_animals, bg='#8B1A1A',
                       activebackground='#e68c55',
                       activeforeground='white', width=40).grid(row=1, column=1, pady=(3, 10), sticky='we'),
-            tk.Button(self.toolbar, text='Energy view', command=self.switch_mode(MODE_ENERGY), bg='#E0FFFF',
+            tk.Button(self.toolbar, text='Energy view', command=self.switch_mode_energy, bg='#E0FFFF',
                       activebackground='#e68c55',
                       activeforeground='white', width=40).grid(row=2, column=1, pady=(3, 10), sticky='we'),
-            tk.Button(self.toolbar, text='Temperature view', command=self.switch_mode(MODE_TEMPERATURE), bg='#F0E68C',
+            tk.Button(self.toolbar, text='Temperature view', command=self.switch_mode_temperature, bg='#F0E68C',
                       activebackground='#e68c55',
                       activeforeground='white', width=40).grid(row=3, column=1, pady=(3, 10), sticky='we'),
-            tk.Button(self.toolbar, text='Corpse view', command=self.switch_mode(MODE_CORPSE), bg='#D3D3D3',
+            tk.Button(self.toolbar, text='Corpse view', command=self.switch_mode_corpse, bg='#D3D3D3',
                       activebackground='#e68c55',
                       activeforeground='white', width=40).grid(row=4, column=1, pady=(3, 10), sticky='we')
         ]
-        self.field = tk.Canvas(self.root, width=1000, height=600, highlightthickness=1, highlightbackground='black',
+        self.field = tk.Canvas(self.root, highlightthickness=1, highlightbackground='black',
                                bg='#f7d794', relief='ridge', scrollregion=(0, 0, 1190, 745))
         self.field.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nswe', padx=(0, 10), pady=(0, 10))
         self.buttonbar = tk.Frame(self.root, highlightbackground='black', width=200, height=70, highlightthickness=1)
@@ -461,12 +452,12 @@ class FrontWindow:
         ]
         self.state = True
         self.run = False
-        self.sqr_number_x = 150
-        self.sqr_number_y = 100
-        for x in range(1, self.sqr_number_x + 1):  # horizontal
-            self.field.create_line(x * 1190 // self.sqr_number_x, 0, x * 1190 // self.sqr_number_x, 745, fill='black')
-        for y in range(1, self.sqr_number_y):  # vertical
-            self.field.create_line(0, y * 745 // self.sqr_number_y, 1200, y * 745 // self.sqr_number_y, fill='black')
+        self.squares = []
+        for x in range(FIELD_WIDTH):  # vertical
+            self.squares.append([])
+            for y in range(FIELD_HEIGHT):  # horizontal
+                self.squares[x].append(self.field.create_rectangle(x * 1550 // FIELD_WIDTH, y * 950 // FIELD_HEIGHT,
+                                        (x+1) * 1550 // FIELD_WIDTH, (y+1) * 950 // FIELD_HEIGHT))
         xbar = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
         ybar = tk.Scrollbar(self.root)
         ybar.grid(row=0, column=2, rowspan=3, sticky='ns')
@@ -478,6 +469,8 @@ class FrontWindow:
         self.root.bind("<F11>", self.toggle_fullscreen)
         self.root.bind("<Escape>", self.end_fullscreen)
         self.root.bind("<space>", self.change_run)
+        stage_generation()
+        self.refresh()
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state
@@ -488,8 +481,24 @@ class FrontWindow:
         self.root.attributes("-fullscreen", False)
 
     def play(self):
-        self.run = True
+        global game_play, current_generation, current_step
         game_play = True
+        print("cold", len(cold))
+        print("warm", len(warm))
+        if game_play and len(cold) > 0 and len(warm):
+            for i in range(generation_steps):
+                do_step()
+                current_step = i
+                print("generation ", current_generation, "step ", current_step)
+                self.refresh()
+            do_reproduction()
+            # sleep(1)
+            print("cold", len(cold))
+            print("warm", len(warm))
+            current_generation += 1
+            self.refresh()
+        # self.run = True
+        # game_play = True
         # self.buttons[0].config(state=tk.DISABLED)
         # self.buttons[1].config(state=tk.NORMAL)
 
@@ -508,17 +517,35 @@ class FrontWindow:
         #     self.buttons[1].config(state=tk.DISABLED)
         #     self.buttons[0].config(state=tk.NORMAL)
 
-    def paint(self, cells):
-        for i in range(len(self.cells)):
-            for j in range(len(self.cells[i])):
-                self.field.create_rectangle(i * self.sqr_number_x, j * self.sqr_number_y,
-                                            (i + 1) * self.sqr_number_x, (j + 1) * self.sqr_number_y,
-                                            fill=self.cells[i][j].color_by_view_mode(current_view_mode))
-        return self.root.after(2000, cells)
+    def refresh(self):
+        for i in range(FIELD_WIDTH):
+            for j in range(FIELD_HEIGHT):
+                self.field.itemconfig(self.squares[i][j], fill=cells[i][j].color_by_view_mode(current_view_mode))
 
-    def switch_mode(self, MODE):
+    def switch_mode_animals(self):
         global current_view_mode
-        current_view_mode = MODE
+        current_view_mode = MODE_ANIMALS
+        self.refresh()
+
+    def switch_mode_energy(self):
+        global current_view_mode
+        current_view_mode = MODE_ENERGY
+        self.refresh()
+
+    def switch_mode_temperature(self):
+        global current_view_mode
+        current_view_mode = MODE_TEMPERATURE
+        self.refresh()
+
+    def switch_mode_plants(self):
+        global current_view_mode
+        current_view_mode = MODE_PLANTS
+        self.refresh()
+
+    def switch_mode_corpse(self):
+        global current_view_mode
+        current_view_mode = MODE_CORPSE
+        self.refresh()
 
 
 def do_reproduction():
@@ -538,7 +565,7 @@ def do_reproduction():
         if child:
             cold_children.append(child)
     cold = list(filter(lambda animal: animal.energy != 0, cold))
-    print("new cold ",len(cold_children))
+    print("new cold ", len(cold_children))
     cold.extend(cold_children)
 
 
@@ -654,7 +681,7 @@ def do_step():
     cold = list(filter(lambda animal: animal.energy != 0, cold))
 
 
-def start_game():
+def start_game(window):
     global game_play, current_generation, current_step
     game_play = True
     print("cold", len(cold))
@@ -664,20 +691,16 @@ def start_game():
             do_step()
             current_step = i
             print("generation " ,current_generation ,"step ", current_step)
-            # rerender()
+            window.refresh()
         do_reproduction()
         sleep(1)
         print("cold" , len(cold))
         print("warm" , len(warm))
         current_generation += 1
-        # rerender()
+        window.refresh()
 
 
 if __name__ == '__main__':
-    stage_generation()
-    start_game()
-    # root = tk.Tk()
-    # fw = FrontWindow(root)
-    # bw = BackWindow()
-    # root.after(2000, fw.paint(bw.cells))
-    # root.mainloop()
+    root = tk.Tk()
+    fw = FrontWindow(root)
+    root.mainloop()
