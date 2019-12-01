@@ -17,7 +17,6 @@ game_play = False
 # время одного шага - 0.2сек
 STEP_TIME = 200
 
-# TODO добавить поле которое будет отображать текущее поколение и текущий ход
 current_generation = 0
 current_step = 0
 
@@ -116,8 +115,8 @@ def get_temperature_color(temperature):
     max_color = Color(max_temperature_cell_color)
     col_n = round((MAX_TEMPERATURE - MIN_TEMPERATURE) / gradient_color_count)
     n = round((temperature - MIN_TEMPERATURE) / col_n)
-    result_color = list(min_color.range_to(max_color, gradient_color_count))[n]
-    return  result_color
+    result_color = list(min_color.range_to(max_color, gradient_color_count))[n - 1]
+    return result_color
 
 ###################################################################################
 
@@ -451,7 +450,7 @@ class FrontWindow:
                       activeforeground='white', width=40).grid(row=4, column=1, pady=(3, 10), sticky='we')
         ]
         self.field = tk.Canvas(self.root, highlightthickness=1, highlightbackground='black',
-                               bg='#f7d794', relief='ridge', scrollregion=(0, 0, 1190, 745))
+                               bg='#f7d794', relief='ridge', scrollregion=(0, 0, 1550, 900))
         self.field.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nswe', padx=(0, 10), pady=(0, 10))
         self.buttonbar = tk.Frame(self.root, highlightbackground='black', width=200, height=70, highlightthickness=1)
         self.buttonbar.grid(row=3, column=0, columnspan=2, rowspan=1, sticky='we', padx=(0, 10), pady=(10, 0))
@@ -461,18 +460,25 @@ class FrontWindow:
         self.buttonbar.grid_columnconfigure(2, weight=1)
         self.buttons = [
             tk.Button(self.buttonbar, text='Play', command=self.play, bg='#8beb77', activebackground='#77eb8b',
-                      activeforeground='white', width=10).grid(row=0, column=1, pady=(10, 3), sticky='we'),
+                      activeforeground='white', width=10).grid(row=0, column=5, pady=(10, 3), padx=(3, 10), sticky='we'),
             tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#e66e55', activebackground='#e68c55',
-                      activeforeground='white', width=10).grid(row=1, column=1, pady=(3, 10), sticky='we')
+                      activeforeground='white', width=10).grid(row=1, column=5, pady=(3, 10), padx=(3, 10), sticky='we')
         ]
+        self.generation_var = tk.StringVar()
+        self.step_var = tk.StringVar()
+        self.generation_var.set(f"Generation number {current_generation}")
+        self.step_var.set(f"Step number {current_step}")
+        self.labels = [tk.Label(self.buttonbar, textvariable=self.generation_var).grid(row=0, column=4,
+                    pady=(10, 3), padx=(10, 3), sticky='we'),
+                  tk.Label(self.buttonbar, textvariable=self.step_var).grid(row=1, column=4, pady=(3, 10),
+                    padx=(10, 3), sticky='we')]
         self.state = True
-        self.run = False
         self.squares = []
         for x in range(FIELD_HEIGHT):  # vertical
             self.squares.append([])
             for y in range(FIELD_WIDTH):  # horizontal
-                self.squares[x].append(self.field.create_rectangle(x * 1550 // FIELD_WIDTH, y * 950 // FIELD_HEIGHT,
-                                        (x+1) * 1550 // FIELD_WIDTH, (y+1) * 950 // FIELD_HEIGHT))
+                self.squares[x].append(self.field.create_rectangle(y * 1550 // FIELD_WIDTH, x * 900 // FIELD_HEIGHT,
+                                      (y+1) * 1550 // FIELD_WIDTH, (x+1) * 900 // FIELD_HEIGHT))
         xbar = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
         ybar = tk.Scrollbar(self.root)
         ybar.grid(row=0, column=2, rowspan=3, sticky='ns')
@@ -512,30 +518,26 @@ class FrontWindow:
             print("warm", len(warm))
             current_generation += 1
             self.refresh()
-        # self.run = True
         # game_play = True
         # self.buttons[0].config(state=tk.DISABLED)
         # self.buttons[1].config(state=tk.NORMAL)
 
     def pause(self):
-        self.run = False
+        global game_play
         game_play = False
         # self.buttons[1].config(state=tk.DISABLED)
         # self.buttons[0].config(state=tk.NORMAL)
 
-    def change_run(self, event=None):
-        self.run = not self.run
-        # if self.run:
-        #     self.buttons[0].config(state=tk.DISABLED)
-        #     self.buttons[1].config(state=tk.NORMAL)
-        # else:
-        #     self.buttons[1].config(state=tk.DISABLED)
-        #     self.buttons[0].config(state=tk.NORMAL)
+    def change_run(self):
+        global game_play
+        game_play = not game_play
 
     def refresh(self):
         for i in range(FIELD_HEIGHT):
             for j in range(FIELD_WIDTH):
                 self.field.itemconfig(self.squares[i][j], fill=cells[i][j].color_by_view_mode(current_view_mode))
+        self.generation_var.set(f"Generation number {current_generation}")
+        self.step_var.set(f"Step number {current_step}")
 
     def switch_mode_animals(self):
         global current_view_mode
@@ -724,7 +726,7 @@ def start_game(window):
             print("generation " ,current_generation ,"step ", current_step)
             window.refresh()
         do_reproduction()
-        sleep(1)
+        # sleep(1)
         print("cold" , len(cold))
         print("warm" , len(warm))
         current_generation += 1
