@@ -51,20 +51,12 @@ warm_blooded_cell_color = "#8B1A1A"
 cold_blooded_cell_color = "#104E8B"
 
 empty_cell_color = "White"
-
-min_energy_cell_color =   "#E0FFFF"
-max_energy_cell_color = "#191970"
-
-min_plants_cell_color = "#9AFF9A"
-max_plants_cell_color = "#008000"
-
-min_temperature_cell_color = "#F0E68C"
-max_temperature_cell_color = "#FF4500"
-
-min_corpse_cell_color = "#D3D3D3"
-max_corpse_cell_color = "#363636"
-
 gradient_color_count = 10
+
+energy_color_scale = list(Color("#E0FFFF").range_to(Color("#191970"), gradient_color_count))
+plants_color_scale = list(Color("#9AFF9A").range_to(Color("#008000"), gradient_color_count))
+temperature_color_scale = list(Color("#F0E68C").range_to(Color("#FF4500"), gradient_color_count))
+corpse_color_scale = list(Color("#D3D3D3").range_to(Color("#363636"), gradient_color_count))
 
 
 def rgb_to_hex(rgb):
@@ -72,13 +64,10 @@ def rgb_to_hex(rgb):
 
 
 def get_energy_color(energy):
-    if energy == 0:
+    if not energy:
         return empty_cell_color
-    min_color = Color(min_energy_cell_color)
-    max_color = Color(max_energy_cell_color)
-    col_n = round((MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY) / (gradient_color_count - 1) )
-    n = round((energy - MIN_ANIMAL_ENERGY) / col_n)
-    return list(min_color.range_to(max_color, gradient_color_count))[n]
+    n = round((energy - MIN_ANIMAL_ENERGY)*(gradient_color_count - 1) / (MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY))
+    return energy_color_scale[n]
 
 
 def get_animal_color(animal):
@@ -91,32 +80,23 @@ def get_animal_color(animal):
 
 
 def get_plant_color(plant_nutrition):
-    if plant_nutrition == 0:
+    if not plant_nutrition:
         return empty_cell_color
-    min_color = Color(min_plants_cell_color)
-    max_color = Color(max_plants_cell_color)
-    col_n = round((MAX_PLANTS_NUTRITION - 0) / (gradient_color_count - 1))
-    n = round((plant_nutrition - 0) / col_n)
-    return list(min_color.range_to(max_color, gradient_color_count))[n]
+    n = (plant_nutrition - 0)*(gradient_color_count - 1) // (MAX_PLANTS_NUTRITION - 0)
+    return plants_color_scale[n]
 
 
 def get_corpse_color(corpse_energy):
-    if corpse_energy == 0:
+    if not corpse_energy:
         return empty_cell_color
-    min_color = Color(min_corpse_cell_color)
-    max_color = Color(max_corpse_cell_color)
-    col_n = round((MAX_CORPSE_ENERGY - 0) / (gradient_color_count - 1))
-    n = round((corpse_energy -  0) / col_n)
-    return list(min_color.range_to(max_color, gradient_color_count))[col_n]
+    col_n = (MAX_CORPSE_ENERGY - 0) // (gradient_color_count - 1)
+    return corpse_color_scale[col_n]
 
 
 def get_temperature_color(temperature):
-    min_color = Color(min_temperature_cell_color)
-    max_color = Color(max_temperature_cell_color)
-    col_n = round((MAX_TEMPERATURE - MIN_TEMPERATURE) / (gradient_color_count - 1))
-    n = round((temperature - MIN_TEMPERATURE) / (col_n + 1 ))
-    result_color = list(min_color.range_to(max_color, gradient_color_count))[n]
-    return result_color
+    col_n = (MAX_TEMPERATURE - MIN_TEMPERATURE) // (gradient_color_count - 1)
+    n = round((temperature - MIN_TEMPERATURE) / (col_n + 1))
+    return temperature_color_scale[n]
 
 ###################################################################################
 
@@ -155,8 +135,6 @@ def mutation(animal):
             animal.actions_probability = inversion_mutation(animal.actions_probability)
         elif key == "translocation":
             animal.actions_probability = translocation_mutation(animal.actions_probability)
-        else:
-            pass
 
 
 def simple_mutation(genom):
@@ -179,15 +157,11 @@ def translocation_mutation(genom):
     translocation_part_len = round(len(genom) / 3)
     translocation_part_start = random.randint(0, len(genom) - translocation_part_len)
     translocation_part_new_start = random.randint(0, len(genom) - translocation_part_len)
-
     translocation_part = genom[translocation_part_start:translocation_part_start + translocation_part_len]
     new_genom = genom[:translocation_part_start] + genom[translocation_part_start + translocation_part_len:]
     for i in range(translocation_part_len):
         new_genom.insert(translocation_part_new_start + i, translocation_part[i])
     return new_genom
-
-
-########################################################################
 
 ################################################################################
 
@@ -202,8 +176,8 @@ actions = ["LEFT-UP", 'UP', 'RIGHT-UP', 'LEFT', 'RIGHT', 'LEFT-BOTTOM', 'BOTTOM'
 
 
 ##################################################################################
-class Animal:
 
+class Animal:
     def __init__(self, cell):
         self.max_energy = MAX_ANIMAL_ENERGY
         self.min_energy = MIN_ANIMAL_ENERGY  # Энергия ниже которой животное помирает и становится трупом на клетке
@@ -235,18 +209,6 @@ class Animal:
             self.cell = destination_cell
             destination_cell.animal = self
 
-    def eat(self):
-        pass
-
-    def rest(self):
-        pass
-
-    def try_reproduce(self):
-        return None
-
-    def find_partner(self):
-        return None
-
     def find_free_cell(self):
         for cell in self.cell.nearest_cells:
             if cell is not None and not cell.animal:
@@ -260,10 +222,8 @@ class Animal:
 
         # для удобства работы с мутациями и проч.
         # вероятности вычисляются для каждого действия в отдельности, как части общей суммы значений действий
-        action_n = np.random.choice(range(len(self.actions_probability)),
-                                    p=prob)
+        action_n = np.random.choice(range(len(self.actions_probability)), p=prob)
         action = actions[action_n]
-
         if (action in directions):
             self.move(directions[action])
         elif action == 'NUTRITION':
@@ -283,7 +243,6 @@ class Animal:
 
 
 class WarmBlooded(Animal):
-
     def __init__(self, cell):
         super().__init__(cell)
         self.energy = MAX_ANIMAL_ENERGY
@@ -331,7 +290,6 @@ class WarmBlooded(Animal):
 
 
 class ColdBlooded(Animal):
-
     def __init__(self, cell):
         super().__init__(cell)
         self.energy = MAX_ANIMAL_ENERGY
@@ -573,7 +531,7 @@ def do_reproduction():
         if child:
             warm_children.append(child)
     warm = list(filter(lambda animal: animal.energy != 0, warm))
-    print("new warm ",len(warm_children))
+    print("new warm ", len(warm_children))
     warm.extend(warm_children)
 
     cold_children = []
@@ -723,12 +681,12 @@ def start_game(window):
         for i in range(generation_steps):
             do_step()
             current_step = i
-            print("generation " ,current_generation ,"step ", current_step)
+            print("generation ", current_generation, "step ", current_step)
             window.refresh()
         do_reproduction()
         # sleep(1)
-        print("cold" , len(cold))
-        print("warm" , len(warm))
+        print("cold", len(cold))
+        print("warm", len(warm))
         current_generation += 1
         window.refresh()
 
