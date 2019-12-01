@@ -1,11 +1,8 @@
+import random
 import tkinter as tk
 from time import sleep
 
 import numpy as np
-import random
-
-from threading import Thread
-
 from colour import Color
 
 MODE_ANIMALS = 'mode_animals'
@@ -39,14 +36,14 @@ WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 # параметры поля
 FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 10000
+START_ANIMAL_NUMBER = 5000
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
-MAX_TEMPERATURE = -30
-MIN_TEMPERATURE = 40
+MIN_TEMPERATURE = -30
+MAX_TEMPERATURE = 40
 BASE_CELL_TEMPERATURE = 20
 CORPSE_DECAY_TIME = 5
 MAX_CORPSE_ENERGY = 50
-MAX_PLANTS_NUTRITION = 30
+MAX_PLANTS_NUTRITION = 40
 #################################################################################
 
 ################################################################################
@@ -208,6 +205,7 @@ class Animal:
         self.kus = 0
         self.age = 0
         self.cell = cell
+        self.cell.animal = self
         self.actions_probability = [random.randint(1, 10) for i in range(len(actions))]
 
     def check_energy(self):
@@ -279,7 +277,7 @@ class WarmBlooded(Animal):
     def __init__(self, cell):
         super().__init__(cell)
         self.energy = MAX_ANIMAL_ENERGY
-        self.optimal_temperature = [5, 30]
+        self.optimal_temperature = [0, 35]
         self.energy_debuff = 5
         self.temperature_sensibility = WARM_BLOODED_TEMPERATURE_SENSIBILITY
         self.optimal_temperature = WARM_BLOODED_OPTIMAL_TEMPERATURE
@@ -343,8 +341,9 @@ class ColdBlooded(Animal):
     def find_partner(self):
         cells = self.cell.nearest_cells
         for cell in cells:
-            if isinstance(cell.animal, ColdBlooded):
-                return cell.animal
+            if cell:
+                if isinstance(cell.animal, ColdBlooded):
+                    return cell.animal
 
     def try_reproduce(self):
         if self.energy == 0:
@@ -404,7 +403,9 @@ class Cell:
         if state == MODE_ANIMALS:
             return get_animal_color(self.animal)
         elif state == MODE_ENERGY:
-            energy = self.animal.energy | 0
+            energy = 0
+            if self.animal:
+                energy = self.animal.energy
             return get_energy_color(energy)
         elif state == MODE_PLANTS:
             return get_plant_color(self.plant_nutrition)
@@ -453,9 +454,9 @@ class FrontWindow:
         self.state = True
         self.run = False
         self.squares = []
-        for x in range(FIELD_WIDTH):  # vertical
+        for x in range(FIELD_HEIGHT):  # vertical
             self.squares.append([])
-            for y in range(FIELD_HEIGHT):  # horizontal
+            for y in range(FIELD_WIDTH):  # horizontal
                 self.squares[x].append(self.field.create_rectangle(x * 1550 // FIELD_WIDTH, y * 950 // FIELD_HEIGHT,
                                         (x+1) * 1550 // FIELD_WIDTH, (y+1) * 950 // FIELD_HEIGHT))
         xbar = tk.Scrollbar(self.root, orient=tk.HORIZONTAL)
@@ -518,8 +519,8 @@ class FrontWindow:
         #     self.buttons[0].config(state=tk.NORMAL)
 
     def refresh(self):
-        for i in range(FIELD_WIDTH):
-            for j in range(FIELD_HEIGHT):
+        for i in range(FIELD_HEIGHT):
+            for j in range(FIELD_WIDTH):
                 self.field.itemconfig(self.squares[i][j], fill=cells[i][j].color_by_view_mode(current_view_mode))
 
     def switch_mode_animals(self):
@@ -571,7 +572,7 @@ def do_reproduction():
 
 def stage_generation():
     global cells, warm, cold
-    cells = [[Cell() for j in range(FIELD_HEIGHT)] for i in range(FIELD_WIDTH)]
+    cells = [[Cell() for j in range(FIELD_WIDTH)] for i in range(FIELD_HEIGHT)]
     init_nearest_cells(cells)
     cold = []
     warm = []
@@ -581,7 +582,7 @@ def stage_generation():
                 type_index = 'WARM' if random.random() < START_ANIMAL_RATIO[0] else 'COLD'
                 cell = None
                 while not cell:
-                    random_cell = cells[random.randint(0, FIELD_WIDTH - 1)][random.randint(0, FIELD_HEIGHT - 1)]
+                    random_cell = cells[random.randint(0, FIELD_HEIGHT - 1)][random.randint(0, FIELD_WIDTH - 1)]
                     cell = random_cell if not random_cell.animal else None
                 if type_index == 'WARM':
                     warm.append(WarmBlooded(cell))
@@ -596,8 +597,8 @@ def init_nearest_cells(cells):
     height = len(cells)
 
     # заполняем соседей для некрайних клеток
-    for i in range(1, len(cells) - 1):
-        for j in range(1, len(cells[0]) - 1):
+    for i in range(1, height - 1):
+        for j in range(1, width - 1):
             cells[i][j].nearest_cells[0] = cells[i - 1][j - 1]
             cells[i][j].nearest_cells[1] = cells[i - 1][j]
             cells[i][j].nearest_cells[2] = cells[i - 1][j + 1]
@@ -634,6 +635,22 @@ def init_nearest_cells(cells):
             cells[i][width - 1].nearest_cells[3] = cells[i][width - 2]
             cells[i][width - 1].nearest_cells[5] = cells[i + 1][width - 2]
             cells[i][width - 1].nearest_cells[6] = cells[i + 1][width - 1]
+
+    #верхний и нижний края
+    for i in range(1, width-1):
+        #верхний
+        cells[0][i].nearest_cells[3] = cells[0][i - 1]
+        cells[0][i].nearest_cells[4] = cells[0][i + 1]
+        cells[0][i].nearest_cells[5] = cells[1][i - 1]
+        cells[0][i].nearest_cells[6] = cells[1][i]
+        cells[0][i].nearest_cells[7] = cells[1][i + 1]
+        #нижний
+        cells[height - 1 ][i].nearest_cells[0] = cells[height - 2][i - 1]
+        cells[height - 1 ][i].nearest_cells[1] = cells[height - 2][i]
+        cells[height - 1 ][i].nearest_cells[2] = cells[height - 2][i + 1]
+        cells[height - 1 ][i].nearest_cells[3] = cells[height - 1][i - 1]
+        cells[height - 1 ][i].nearest_cells[4] = cells[height - 1][i + 1]
+
     # угловые
     # левый верхний
     cells[0][0].nearest_cells[4] = cells[0][1]
@@ -654,11 +671,11 @@ def init_nearest_cells(cells):
 
 
 def init_cells_temperature():
-    width = len(cells)
-    height = len(cells[1])
+    width = len(cells[1])
+    height = len(cells)
     k = (MAX_TEMPERATURE - MIN_TEMPERATURE) / (height / 2)
-    for row in range(width):
-        for col in range(height):
+    for row in range(height):
+        for col in range(width):
             if row < height / 2:
                 cells[row][col].temperature = MIN_TEMPERATURE + k * row  # линейное распределение температуры
             else:
