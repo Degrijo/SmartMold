@@ -4,7 +4,6 @@ from time import sleep
 import numpy as np
 import random
 
-# from logic.cell import Cell
 from colour import Color
 
 MODE_ANIMALS = 'mode_animals'
@@ -38,7 +37,7 @@ WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 # параметры поля
 FIELD_WIDTH = 150
 FIELD_HEIGHT = 100
-START_ANIMAL_NUMBER = 5000
+START_ANIMAL_NUMBER = 10000
 START_ANIMAL_RATIO = [0.5, 0.5]  # пропорция хладнокровных/теплокровных в %
 MAX_TEMPERATURE = -30
 MIN_TEMPERATURE = 40
@@ -84,6 +83,8 @@ def get_energy_color(energy):
 
 
 def get_animal_color(animal):
+    if not animal:
+        return empty_cell_color
     if type(animal) == WarmBlooded:
         return rgb_to_hex(warm_blooded_cell_color)
     else:
@@ -118,7 +119,7 @@ mutation_probability = 0.05
 different_mutation = {"simple": 0.5, "inversion": 0.3, "translocation": 0.2}
 crossover_probability = 0.02
 
-generation_steps = 10
+generation_steps = 5
 
 
 def fitness(animal):
@@ -180,6 +181,7 @@ def translocation_mutation(genom):
 ########################################################################
 
 ################################################################################
+
 cells = []
 cold = []
 warm = []
@@ -230,24 +232,7 @@ class Animal:
         pass
 
     def try_reproduce(self):
-        if self.energy == 0:
-            return
-        partner = self.find_partner()
-        if partner:
-            child_cell = self.find_free_cell()
-            if not child_cell:
-                if partner.energy > self.energy:
-                    child_cell = self.cell
-                    self.cell = None
-                    self.energy = 0
-                else:
-                    child_cell = partner.cell
-                    partner.energy = 0
-                    partner.cell = None
-            child = Animal(child_cell)
-            crossover(self, partner, child)
-            mutation(child)
-            child_cell.animal = child
+        return None
 
     def find_partner(self):
         return None
@@ -311,6 +296,27 @@ class WarmBlooded(Animal):
             if isinstance(cell.animal, WarmBlooded):
                 return cell.animal
 
+    def try_reproduce(self):
+        if self.energy == 0:
+            return
+        partner = self.find_partner()
+        if partner:
+            child_cell = self.find_free_cell()
+            if not child_cell:
+                if partner.energy > self.energy:
+                    child_cell = self.cell
+                    self.cell = None
+                    self.energy = 0
+                else:
+                    child_cell = partner.cell
+                    partner.energy = 0
+                    partner.cell = None
+            child = WarmBlooded(child_cell)
+            crossover(self, partner, child)
+            mutation(child)
+            child_cell.animal = child
+            return child
+
 
 class ColdBlooded(Animal):
 
@@ -335,6 +341,27 @@ class ColdBlooded(Animal):
         for cell in cells:
             if isinstance(cell.animal, ColdBlooded):
                 return cell.animal
+
+    def try_reproduce(self):
+        if self.energy == 0:
+            return
+        partner = self.find_partner()
+        if partner:
+            child_cell = self.find_free_cell()
+            if not child_cell:
+                if partner.energy > self.energy:
+                    child_cell = self.cell
+                    self.cell = None
+                    self.energy = 0
+                else:
+                    child_cell = partner.cell
+                    partner.energy = 0
+                    partner.cell = None
+            child = ColdBlooded(child_cell)
+            crossover(self, partner, child)
+            mutation(child)
+            child_cell.animal = child
+            return child
 
 
 class Cell:
@@ -494,12 +521,23 @@ class FrontWindow:
 
 def do_reproduction():
     global warm, cold
+    warm_children = []
     for warm_a in warm:
-        warm_a.try_reproduce()
+        child = warm_a.try_reproduce()
+        if child:
+            warm_children.append(child)
     warm = list(filter(lambda animal: animal.energy != 0, warm))
+    print("new warm ",len(warm_children))
+    warm.extend(warm_children)
+
+    cold_children = []
     for cold_a in cold:
-        cold_a.try_reproduce()
+        child = cold_a.try_reproduce()
+        if child:
+            cold_children.append(child)
     cold = list(filter(lambda animal: animal.energy != 0, cold))
+    print("new cold ",len(cold_children))
+    cold.extend(cold_children)
 
 
 def stage_generation():

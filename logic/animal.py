@@ -58,10 +58,12 @@ class Animal:
             if not child_cell:
                 if partner.energy > self.energy:
                     child_cell = self.cell
+                    self.cell.add_corpse_energy(self.energy)
                     self.cell = None
                     self.energy = 0
                 else :
                     child_cell = partner.cell
+                    partner.cell.add_corpse_energy(partner.energy)
                     partner.energy = 0
                     partner.cell = None
             child = Animal(child_cell)
