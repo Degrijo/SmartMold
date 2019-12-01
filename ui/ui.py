@@ -25,9 +25,9 @@ current_step = 0
 MIN_ANIMAL_ENERGY = 20
 MAX_ANIMAL_ENERGY = 100
 COLD_BLOODED_OPTIMAL_TEMPERATURE = [10, 20]
-COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.3
+COLD_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
 WARM_BLOODED_OPTIMAL_TEMPERATURE = [5, 30]
-WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.1
+WARM_BLOODED_TEMPERATURE_SENSIBILITY = 0.05
 ###############################################################################
 
 
@@ -76,7 +76,7 @@ def get_energy_color(energy):
         return empty_cell_color
     min_color = Color(min_energy_cell_color)
     max_color = Color(max_energy_cell_color)
-    col_n = round((MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY) / gradient_color_count)
+    col_n = round((MAX_ANIMAL_ENERGY - MIN_ANIMAL_ENERGY) / (gradient_color_count - 1) )
     n = round((energy - MIN_ANIMAL_ENERGY) / col_n)
     return list(min_color.range_to(max_color, gradient_color_count))[n]
 
@@ -95,7 +95,7 @@ def get_plant_color(plant_nutrition):
         return empty_cell_color
     min_color = Color(min_plants_cell_color)
     max_color = Color(max_plants_cell_color)
-    col_n = round((MAX_PLANTS_NUTRITION - 0) / gradient_color_count)
+    col_n = round((MAX_PLANTS_NUTRITION - 0) / (gradient_color_count - 1))
     n = round((plant_nutrition - 0) / col_n)
     return list(min_color.range_to(max_color, gradient_color_count))[n]
 
@@ -105,7 +105,7 @@ def get_corpse_color(corpse_energy):
         return empty_cell_color
     min_color = Color(min_corpse_cell_color)
     max_color = Color(max_corpse_cell_color)
-    col_n = round((MAX_CORPSE_ENERGY - 0) / gradient_color_count)
+    col_n = round((MAX_CORPSE_ENERGY - 0) / (gradient_color_count - 1))
     n = round((corpse_energy -  0) / col_n)
     return list(min_color.range_to(max_color, gradient_color_count))[col_n]
 
@@ -113,9 +113,9 @@ def get_corpse_color(corpse_energy):
 def get_temperature_color(temperature):
     min_color = Color(min_temperature_cell_color)
     max_color = Color(max_temperature_cell_color)
-    col_n = round((MAX_TEMPERATURE - MIN_TEMPERATURE) / gradient_color_count)
-    n = round((temperature - MIN_TEMPERATURE) / col_n)
-    result_color = list(min_color.range_to(max_color, gradient_color_count))[n - 1]
+    col_n = round((MAX_TEMPERATURE - MIN_TEMPERATURE) / (gradient_color_count - 1))
+    n = round((temperature - MIN_TEMPERATURE) / (col_n + 1 ))
+    result_color = list(min_color.range_to(max_color, gradient_color_count))[n]
     return result_color
 
 ###################################################################################
@@ -695,7 +695,7 @@ def init_cells_temperature():
             if row < (height / 2):
                 cells[row][col].temperature = MIN_TEMPERATURE + k * row  # линейное распределение температуры
             else:
-                cells[row][col].temperature = MAX_TEMPERATURE - k * row // 2  # линейное распределение температуры
+                cells[row][col].temperature = MAX_TEMPERATURE - k * (row - height / 2)  # линейное распределение температуры
 
 
 def init_plants():
