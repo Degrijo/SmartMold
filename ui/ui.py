@@ -1,6 +1,8 @@
 import random
 import tkinter as tk
 from time import sleep
+from queue import Queue, Empty
+from threading import Thread
 
 import numpy as np
 from colour import Color
@@ -426,12 +428,12 @@ class FrontWindow:
         self.buttonbar.grid_columnconfigure(0, weight=30)
         self.buttonbar.grid_columnconfigure(1, weight=1)
         self.buttonbar.grid_columnconfigure(2, weight=1)
-        self.buttons = [
-            tk.Button(self.buttonbar, text='Play', command=self.play, bg='#8beb77', activebackground='#77eb8b',
-                      activeforeground='white', width=10).grid(row=0, column=5, pady=(10, 3), padx=(3, 10), sticky='we'),
-            tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#e66e55', activebackground='#e68c55',
-                      activeforeground='white', width=10).grid(row=1, column=5, pady=(3, 10), padx=(3, 10), sticky='we')
-        ]
+        # self.buttons = [
+        #     tk.Button(self.buttonbar, text='Play', command=self.play, bg='#8beb77', activebackground='#77eb8b',
+        #               activeforeground='white', width=10).grid(row=0, column=5, pady=(10, 3), padx=(3, 10), sticky='we'),
+        #     tk.Button(self.buttonbar, text='Pause', command=self.pause, bg='#e66e55', activebackground='#e68c55',
+        #               activeforeground='white', width=10).grid(row=1, column=5, pady=(3, 10), padx=(3, 10), sticky='we')
+        # ]
         self.generation_var = tk.StringVar()
         self.step_var = tk.StringVar()
         self.generation_var.set(f"Generation number {current_generation}")
@@ -460,6 +462,7 @@ class FrontWindow:
         self.root.bind("<space>", self.change_run)
         stage_generation()
         self.refresh()
+        print('end init front')
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state
@@ -704,7 +707,45 @@ def start_game(window):
         window.refresh()
 
 
+class ThreadClient:
+    def __init__(self, root):
+        self.root = root
+        self.queue = Queue()
+        self.gui = FrontWindow(root)
+        self.thread = Thread(target=self.start_game)
+        self.thread.start()
+        self.periodicCall()
+
+    def start_game(self):
+        global game_play, current_generation, current_step
+        game_play = True
+        print("cold", len(cold))
+        print("warm", len(warm))
+        while game_play and len(cold) > 0 and len(warm):
+            for i in range(generation_steps):
+                do_step()
+                current_step = i
+                print("generation ", current_generation, "step ", current_step)
+                self.queue.put(True)
+            do_reproduction()
+            print("cold", len(cold))
+            print("warm", len(warm))
+            current_generation += 1
+            self.queue.put(True)
+            sleep(3)
+
+    def periodicCall(self):
+        print('refresh')
+        while self.queue.qsize():
+            try:
+                self.queue.get()
+                self.gui.refresh()
+            except Empty:
+                pass
+        self.root.after(100, self.periodicCall)
+
+
 if __name__ == '__main__':
     root = tk.Tk()
-    fw = FrontWindow(root)
+    client = ThreadClient(root)
     root.mainloop()
